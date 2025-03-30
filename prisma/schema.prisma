@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  name        String
+  email       String        @unique
+  password    String
+  role        Role
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  responses   Response[]
+  ChatSession ChatSession[]
+  Analysis    Analysis[]
+
+  @@index([email])
+}
+
+enum Role {
+  HEALER
+  PATIENT
+}
+
+
+
+model Response {
+  id              String         @id @default(uuid())
+  user            User           @relation(fields: [userId], references: [id])
+  userId          String
+  answers         Json
+  analysis        Json
+  createdAt       DateTime       @default(now())
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  messages  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Analysis {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  traits Json
+}
