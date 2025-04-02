@@ -65,7 +65,7 @@ const manageChatSession = async (userId, message) => {
 };
 const getExistingMessages = async (userId) => {
   const session = await prisma.chatSession.findFirst({
-    where: { userId: "ca4d1a68-f116-4964-9745-749244b7d8f2" },
+    where: { userId },
     select: { messages: true },
   });
   return session?.messages || [];

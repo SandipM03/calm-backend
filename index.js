@@ -56,7 +56,7 @@ app.post("/api/v1/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login successful!", token });
+    res.status(200).json({ message: "Login successful!", token });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Error logging in" });
@@ -75,6 +75,7 @@ const authenticate = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    console.log(req.user);
     next();
   } catch {
     res.status(403).json({ error: "Invalid token" });
@@ -88,10 +89,9 @@ app.get("/api/v1/profile", authenticate, async (req, res) => {
 
 app.post("/api/v1/save_user_preference", authenticate, async (req, res) => {
   try {
-    const { userId, questions, answers } = req.body;
-
-    // Validate input
-    if (!userId || !questions || !answers) {
+    const { questions, answers } = req.body;
+    console.log(questions, answers);
+    if (!questions || !answers) {
       return res.status(400).json({
         success: false,
         error: "Missing required fields",
@@ -103,13 +103,13 @@ app.post("/api/v1/save_user_preference", authenticate, async (req, res) => {
 
     const savedResponse = await prisma.response.create({
       data: {
-        userId: "ca4d1a68-f116-4964-9745-749244b7d8f2",
+        userId: req.user.userId,
         answers: { questions, answers },
         analysis,
       },
     });
     console.log(savedResponse);
-    res.json({
+    res.status(200).json({
       success: true,
       analysis: {
         rating: analysis.rating,
@@ -179,15 +179,10 @@ const getGeminiAnalysis = async (questions, answers) => {
 // In your backend controller
 app.post("/api/v1/emotional_support_chat", authenticate, async (req, res) => {
   try {
-    const {
-      userId = "ca4d1a68-f116-4964-9745-749244b7d8f2",
-      message,
-      chatHistory = [],
-      isFirstMessage = false,
-    } = req.body;
+    const { message, chatHistory = [], isFirstMessage = false } = req.body;
 
     const user = await prisma.user.findFirst({
-      where: { id: "ca4d1a68-f116-4964-9745-749244b7d8f2" },
+      where: { id: req.user.userId },
       include: {
         Analysis: {
           select: { traits: true },
@@ -203,7 +198,7 @@ app.post("/api/v1/emotional_support_chat", authenticate, async (req, res) => {
     }
 
     const response = await handleChatMessage({
-      userId:"ca4d1a68-f116-4964-9745-749244b7d8f2",
+      userId: req.user.userId,
       message: {
         role: "user",
         content: message,

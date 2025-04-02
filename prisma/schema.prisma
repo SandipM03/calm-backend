@@ -27,15 +27,15 @@ enum Role {
   PATIENT
 }
 
-
-
 model Response {
-  id              String         @id @default(uuid())
-  user            User           @relation(fields: [userId], references: [id])
-  userId          String
-  answers         Json
-  analysis        Json
-  createdAt       DateTime       @default(now())
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  answers   Json
+  analysis  Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model ChatSession {
@@ -45,6 +45,9 @@ model ChatSession {
   messages  Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+
 }
 
 model Analysis {
@@ -52,4 +55,7 @@ model Analysis {
   userId String
   user   User   @relation(fields: [userId], references: [id])
   traits Json
+
+  @@index([userId])
+
 }
